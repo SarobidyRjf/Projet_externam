@@ -1,0 +1,13 @@
+services:
+  nuxt-app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      MONGO_URI: mongodb://admin:123456789@185.98.136.90:27017/externam?authSource=admin
+      JWT_SECRET: lechatsur-secret
+      ACCESS_TOKEN: EAAJmOSKZBz0kBPC7W7tC2Gh7s7odZByF7gvKoQLX0BZAgRetL87eFZBKAJREDKSdZCUTnGJ2K87z7aUr10ESDkdtdGCNtnc73BS3O5DLySyj3Wz2ZAseNFhCXgN9aPMFF6akecKmiNKIrrKm1mvGP67RgkaUHNLwxZAiyUD4k8rhV10DVldnFbrjEQ0qUNMIrnv
+      META_API_URL: https://graph.facebook.com
+      NITRO_PORT: 3000
+      NITRO_HOST: 0.0.0.0
+    restart: unless-stopped

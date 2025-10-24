@@ -1,0 +1,92 @@
+export const apps = [
+  {
+    name: "Telegram",
+    logo: "tabler:brand-telegram",
+    connected: false,
+    desc: "Connect with Telegram for real-time communication.",
+  },
+  {
+    name: "Notion",
+    logo: "tabler:brand-notion",
+    connected: true,
+    desc: "Effortlessly sync Notion pages for seamless collaboration.",
+  },
+  {
+    name: "Figma",
+    logo: "tabler:brand-figma",
+    connected: true,
+    desc: "View and collaborate on Figma designs in one place.",
+  },
+  {
+    name: "Trello",
+    logo: "tabler:brand-trello",
+    connected: false,
+    desc: "Sync Trello cards for streamlined project management.",
+  },
+  {
+    name: "Slack",
+    logo: "tabler:brand-slack",
+    connected: false,
+    desc: "Integrate Slack for efficient team communication",
+  },
+  {
+    name: "Zoom",
+    logo: "tabler:brand-zoom",
+    connected: true,
+    desc: "Host Zoom meetings directly from the dashboard.",
+  },
+  {
+    name: "Stripe",
+    logo: "tabler:brand-stripe",
+    connected: false,
+    desc: "Easily manage Stripe transactions and payments.",
+  },
+  {
+    name: "Gmail",
+    logo: "tabler:brand-google",
+    connected: true,
+    desc: "Access and manage Gmail messages effortlessly.",
+  },
+  {
+    name: "Medium",
+    logo: "tabler:brand-medium",
+    connected: false,
+    desc: "Explore and share Medium stories on your dashboard.",
+  },
+  {
+    name: "Skype",
+    logo: "tabler:brand-skype",
+    connected: false,
+    desc: "Connect with Skype contacts seamlessly.",
+  },
+  {
+    name: "Docker",
+    logo: "tabler:brand-docker",
+    connected: false,
+    desc: "Effortlessly manage Docker containers on your dashboard.",
+  },
+  {
+    name: "GitHub",
+    logo: "tabler:brand-github",
+    connected: false,
+    desc: "Streamline code management with GitHub integration.",
+  },
+  {
+    name: "GitLab",
+    logo: "tabler:brand-gitlab",
+    connected: false,
+    desc: "Efficiently manage code projects with GitLab integration.",
+  },
+  {
+    name: "Discord",
+    logo: "tabler:brand-discord",
+    connected: false,
+    desc: "Connect with Discord for seamless team communication.",
+  },
+  {
+    name: "WhatsApp",
+    logo: "tabler:brand-whatsapp",
+    connected: false,
+    desc: "Easily integrate WhatsApp for direct messaging.",
+  },
+];
