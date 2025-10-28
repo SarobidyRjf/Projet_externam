@@ -5,6 +5,7 @@ import { useAuthStore } from '~/stores/auth'
 import { useFetch } from '#app'
 import VideoPlayer from '~/components/VideoPlayer.vue'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
@@ -44,8 +45,8 @@ onMounted(() => {
 const { ability } = storeToRefs(useAuthStore())
 const _canRead = computed(() => !!(ability.value?.can('manage','all') || ability.value?.can('read','Tutorial')))
 const _canCreate = computed(() => !!(ability.value?.can('manage','all') || ability.value?.can('create','Tutorial')))
-const canUpdate = computed(() => !!(ability.value?.can('manage','all') || ability.value?.can('update','Tutorial')))
-const canDelete = computed(() => !!(ability.value?.can('manage','all') || ability.value?.can('delete','Tutorial')))
+const _canUpdate = computed(() => !!(ability.value?.can('manage','all') || ability.value?.can('update','Tutorial')))
+const _canDelete = computed(() => !!(ability.value?.can('manage','all') || ability.value?.can('delete','Tutorial')))
 
 function openItem(item: Tutorial) {
   selectedTutorial.value = item
@@ -112,8 +113,8 @@ function formatDate(date?: string): string {
     </div>
 
     <!-- Lecteur vidéo modal -->
-    <Dialog v-model:open="showVideoPlayer">
-      <DialogContent class="max-w-[95vw] w-[95vw] max-h-[95vh] overflow-y-auto">
+    <Dialog v-model:open="showVideoPlayer" class="bg-red-500">
+      <DialogContent class="xl:max-w-4xl sm:max-x-3xl w-[100vw] max-h-[100vh] overflow-y-auto  ">
         <DialogHeader>
           <DialogTitle>{{ selectedTutorial?.title }}</DialogTitle>
           <DialogDescription>
@@ -137,8 +138,9 @@ function formatDate(date?: string): string {
           <!-- PDF -->
           <div v-else-if="selectedTutorial.type === 'pdf'" class="space-y-4">
             <div class="bg-gray-50 p-4 rounded-lg">
-              <h3 class="font-semibold text-lg mb-2">{{ selectedTutorial.title }}</h3>
-              <p class="text-gray-600 mb-3">{{ selectedTutorial.description }}</p>
+              <!-- Description an'ilay PDF -->
+              <!-- <h3 class="font-semibold text-lg mb-2">{{ selectedTutorial.title }}</h3>
+              <p class="text-gray-600 mb-3">{{ selectedTutorial.description }}</p> -->
               <div v-if="selectedTutorial.tags && selectedTutorial.tags.length" class="flex flex-wrap gap-1 mb-3">
                 <span v-for="tag in selectedTutorial.tags" :key="tag" class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
                   {{ tag }}
@@ -146,10 +148,10 @@ function formatDate(date?: string): string {
               </div>
             </div>
             
-            <div class="border rounded-lg overflow-hidden">
+            <div class="border rounded-lg overflow-hidden flex justify-center">
               <iframe 
                 :src="selectedTutorial.fileUrl" 
-                class="w-full h-[600px]"
+                class="w-[60vw] h-[600px]"
                 title="PDF Viewer"
               />
             </div>
@@ -194,7 +196,11 @@ function formatDate(date?: string): string {
 
     <div v-if="pending" class="text-sm text-gray-500">Chargement...</div>
 
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div v-if="!pending && items.length === 0" class="text-center py-12">
+      <p class="text-lg text-gray-500">Aucune Tutoriel Disponible pour le moment</p>
+    </div>
+
+    <div v-else class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <div v-for="item in items" :key="item._id" class="border rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer group">
         <div class="aspect-video bg-muted rounded mb-3 overflow-hidden flex items-center justify-center relative">
           <img v-if="item.thumbnailUrl" :src="item.thumbnailUrl" alt="thumb" class="w-full h-full object-cover">
@@ -219,26 +225,6 @@ function formatDate(date?: string): string {
               >
                 <Icon name="lucide:download" class="w-4 h-4" />
                 Télécharger
-              </Button>
-              <Button
-                v-if="canUpdate"
-                size="sm"
-                variant="ghost"
-                class="flex items-center gap-2"
-                disabled
-                title="Modifier (admin seulement ici)"
-              >
-                <Icon name="lucide:pencil" class="w-4 h-4" />
-              </Button>
-              <Button
-                v-if="canDelete"
-                size="sm"
-                variant="ghost"
-                class="flex items-center gap-2 text-red-600"
-                disabled
-                title="Supprimer (admin seulement ici)"
-              >
-                <Icon name="lucide:trash-2" class="w-4 h-4" />
               </Button>
             </div>
           </div>

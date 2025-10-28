@@ -34,6 +34,8 @@ const showSuccessMessage = ref(false)
 const successMessage = ref('')
 const showDeleteDialog = ref(false)
 const tutorialToDelete = ref<string | null>(null)
+const showModifyFile = ref(false)
+const showModifyThumbnail = ref(false)
 
 const { data, refresh, pending } = await useFetch('/api/academy/tutorials', {
   query: { published: 'false' },
@@ -51,6 +53,8 @@ function editItem(item: Tutorial) {
   editing.value = { ...item }
   tagsText.value = (item.tags || []).join(', ')
   showForm.value = true
+  showModifyFile.value = false
+  showModifyThumbnail.value = false
 }
 
 function closeDialog() {
@@ -58,6 +62,8 @@ function closeDialog() {
   editing.value = null
   isUploading.value = false
   uploadProgress.value = 0
+  showModifyFile.value = false
+  showModifyThumbnail.value = false
 }
 
 function showSuccess(msg: string) {
@@ -87,6 +93,21 @@ async function onSubmit(e: Event) {
   fd.set('type', editing.value.type)
   fd.set('tags', (editing.value.tags || []).join(','))
   fd.set('published', String(!!editing.value.published))
+
+  // Pour la modification, ne pas envoyer les fichiers si les boutons modifier n'ont pas été cliqués
+  if (editing.value._id) {
+    const fileInput = formEl.querySelector('#file') as HTMLInputElement
+    const thumbnailInput = formEl.querySelector('#thumbnail') as HTMLInputElement
+    
+    if (!showModifyFile.value && fileInput) {
+      // Ne pas envoyer le fichier si pas modifié
+      fd.delete('file')
+    }
+    if (!showModifyThumbnail.value && thumbnailInput) {
+      // Ne pas envoyer la miniature si pas modifiée
+      fd.delete('thumbnail')
+    }
+  }
 
   const method = editing.value._id ? 'PUT' : 'POST'
   const url = editing.value._id ? `/api/academy/tutorials/${editing.value._id}` : '/api/academy/tutorials'
@@ -121,6 +142,8 @@ async function onSubmit(e: Event) {
     // Succès - fermer le dialog et rafraîchir
     showForm.value = false
     editing.value = null
+    showModifyFile.value = false
+    showModifyThumbnail.value = false
     await refresh()
     // Afficher le message de succès
     if (uploadProgress.value === 100) {
@@ -274,7 +297,7 @@ if (process.client) {
     </div>
 
     <Dialog v-model:open="showForm">
-      <DialogContent class="sm:max-w-2xl">
+      <DialogContent class="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>{{ editing?._id ? 'Modifier' : 'Nouveau' }} tutoriel</DialogTitle>
           <DialogDescription>
@@ -330,35 +353,89 @@ if (process.client) {
             
             <div class="space-y-2">
               <Label for="tags">Tags</Label>
-              <Input 
+              <input 
                 id="tags"
+                type="text"
                 :value="(editing.tags||[]).join(', ')" 
                 @input="handleTagsInput($event)" 
                 placeholder="tag1, tag2, tag3"
+                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm placeholder:text-muted-foreground"
               />
               <p class="text-xs text-gray-500">Séparez les tags par des virgules</p>
             </div>
 
-            <div class="space-y-2">
+            <!-- Fichier pour nouveau tutoriel -->
+            <div v-if="!editing._id" class="space-y-2">
               <Label for="file">Fichier *</Label>
               <Input 
                 id="file"
                 type="file" 
                 name="file" 
                 :accept="editing.type==='pdf' ? 'application/pdf' : 'video/*'" 
-                class="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                class="block w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm file:mr-3 file:px-3 file:py-1.5 file:rounded-md file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-blue-900/20 dark:hover:file:bg-blue-900/30"
               />
             </div>
 
-            <div class="space-y-2">
+            <!-- Fichier pour modification de tutoriel -->
+            <div v-else class="space-y-2">
+              <Label for="file">Fichier</Label>
+              <div v-if="!showModifyFile" class="space-y-2">
+                <p class="text-sm text-gray-600 bg-gray-50 p-2 rounded border border-gray-200">
+                  {{ editing.fileUrl ? editing.fileUrl.split('/').pop() : 'Aucun fichier' }}
+                </p>
+                <Button type="button" variant="outline" size="sm" @click="showModifyFile = true">
+                  Modifier
+                </Button>
+              </div>
+              <div v-else class="space-y-2">
+                <Input 
+                  id="file"
+                  type="file" 
+                  name="file" 
+                  :accept="editing.type==='pdf' ? 'application/pdf' : 'video/*'" 
+                  class="block w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm file:mr-3 file:px-3 file:py-1.5 file:rounded-md file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-blue-900/20 dark:hover:file:bg-blue-900/30"
+                />
+                <Button type="button" variant="ghost" size="sm" @click="showModifyFile = false">
+                  Annuler
+                </Button>
+              </div>
+            </div>
+
+            <!-- Miniature pour nouveau tutoriel -->
+            <div v-if="!editing._id" class="space-y-2">
               <Label for="thumbnail">Miniature</Label>
               <Input 
                 id="thumbnail"
                 type="file" 
                 name="thumbnail" 
                 accept="image/*" 
-                class="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+                class="block w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm file:mr-3 file:px-3 file:py-1.5 file:rounded-md file:border-0 file:bg-green-50 file:text-green-700 hover:file:bg-green-100 dark:file:bg-emerald-900/20 dark:hover:file:bg-emerald-900/30"
               />
+            </div>
+
+            <!-- Miniature pour modification de tutoriel -->
+            <div v-else class="space-y-2">
+              <Label for="thumbnail">Miniature</Label>
+              <div v-if="!showModifyThumbnail" class="space-y-2">
+                <p class="text-sm text-gray-600 bg-gray-50 p-2 rounded border border-gray-200">
+                  {{ editing.thumbnailUrl ? editing.thumbnailUrl.split('/').pop() : 'Aucune miniature' }}
+                </p>
+                <Button type="button" variant="outline" size="sm" @click="showModifyThumbnail = true">
+                  Modifier
+                </Button>
+              </div>
+              <div v-else class="space-y-2">
+                <Input 
+                  id="thumbnail"
+                  type="file" 
+                  name="thumbnail" 
+                  accept="image/*" 
+                  class="block w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm file:mr-3 file:px-3 file:py-1.5 file:rounded-md file:border-0 file:bg-green-50 file:text-green-700 hover:file:bg-green-100 dark:file:bg-emerald-900/20 dark:hover:file:bg-emerald-900/30"
+                />
+                <Button type="button" variant="ghost" size="sm" @click="showModifyThumbnail = false">
+                  Annuler
+                </Button>
+              </div>
             </div>
 
             <div class="md:col-span-2 flex items-center space-x-2">
@@ -390,7 +467,7 @@ if (process.client) {
 
     <!-- Dialog de détails du tutoriel -->
     <Dialog v-model:open="showDetailsDialog">
-      <DialogContent class="sm:max-w-2xl">
+      <DialogContent class="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Détails du tutoriel</DialogTitle>
           <DialogDescription>
@@ -400,32 +477,53 @@ if (process.client) {
 
         <div v-if="selectedTutorial" class="space-y-4">
           <div class="grid grid-cols-2 gap-4">
-            <div>
+            <div class="space-y-2">
               <Label class="text-sm font-medium text-gray-500">Titre</Label>
-              <p class="text-sm">{{ selectedTutorial.title }}</p>
+              <Input 
+                :modelValue="selectedTutorial.title" 
+                readonly 
+                class="bg-gray-100 text-center"
+              />
             </div>
-            <div>
+            <div class="space-y-2">
               <Label class="text-sm font-medium text-gray-500">Type</Label>
-              <p class="text-sm">{{ selectedTutorial.type === 'video' ? 'Vidéo' : 'PDF' }}</p>
+              <Input 
+                :modelValue="selectedTutorial.type === 'video' ? 'Vidéo' : 'PDF'" 
+                readonly 
+                class="bg-gray-100 text-center"
+              />
             </div>
-            <div>
+            <div class="space-y-2">
               <Label class="text-sm font-medium text-gray-500">Publié</Label>
-              <p class="text-sm">{{ selectedTutorial.published ? 'Oui' : 'Non' }}</p>
+              <Input 
+                :modelValue="selectedTutorial.published ? 'Oui' : 'Non'" 
+                readonly 
+                class="bg-gray-100 text-center"
+              />
             </div>
-            <div>
+            <div class="space-y-2">
               <Label class="text-sm font-medium text-gray-500">Date de création</Label>
-              <p class="text-sm">{{ selectedTutorial.createdAt ? new Date(selectedTutorial.createdAt).toLocaleDateString('fr-FR') : '-' }}</p>
+              <Input 
+                :modelValue="selectedTutorial.createdAt ? new Date(selectedTutorial.createdAt).toLocaleDateString('fr-FR') : '-'" 
+                readonly 
+                class="bg-gray-100 text-center"
+              />
             </div>
           </div>
           
-          <div>
+          <div class="space-y-2">
             <Label class="text-sm font-medium text-gray-500">Description</Label>
-            <p class="text-sm mt-1">{{ selectedTutorial.description || 'Aucune description' }}</p>
+            <Textarea 
+              :modelValue="selectedTutorial.description || 'Aucune description'" 
+              readonly 
+              class="bg-gray-100 text-left"
+              rows="3"
+            />
           </div>
           
-          <div v-if="selectedTutorial.tags && selectedTutorial.tags.length">
+          <div v-if="selectedTutorial.tags && selectedTutorial.tags.length" class="space-y-2">
             <Label class="text-sm font-medium text-gray-500">Tags</Label>
-            <div class="flex flex-wrap gap-1 mt-1">
+            <div class="flex flex-wrap gap-1">
               <span v-for="tag in selectedTutorial.tags" :key="tag" class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
                 {{ tag }}
               </span>
